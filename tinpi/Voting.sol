@@ -19,7 +19,7 @@ contract Voting {
         // create topic; add to topics; return id
     }
 
-    function removeTopic(uint id) returns (bool) {
+    function removeTopic(uint id) public returns (bool) {
         // ensure topic exists
         // remove topic from topics; return true on success
     }

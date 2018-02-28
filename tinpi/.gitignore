@@ -1,3 +1,4 @@
+package-lock.json
 
 # Created by https://www.gitignore.io/api/node
 
@@ -62,4 +63,4 @@ typings/
 .env
 
 
-# End of https://www.gitignore.io/api/node
+# End of https://www.gitignore.io/api/nodepackage-lock.json

@@ -44,6 +44,15 @@ contract Voting {
     function removeTopic(uint id) public returns (bool) {
         // ensure topic exists
         // remove topic from topics; return true on success
+        for(uint i=0; i < topics.length; i++) {
+            Topic memory t = topics[i];
+
+            if (t.id == id) {
+                removeFromTopic(topics, i);
+                return true;
+            }   
+        }
+        return false;
     }
 
     function voteForTopic(uint id) public returns (bool) {
@@ -82,6 +91,23 @@ contract Voting {
     function generateTopicId() private returns (uint newId) {
         newId = lastId + 1;
         lastId = newId;
+    }
+
+    // removes element at specified index from an array
+    function removeFromTopic(Topic[] array, uint index) internal returns(Topic[] value) {
+        if (index >= array.length) 
+            return;
+
+        Topic[] memory arrayNew = new Topic[](array.length-1);
+        for (uint i = 0; i<arrayNew.length; i++) {
+            if (i != index && i<index) {
+                arrayNew[i] = array[i];
+            } else {
+                arrayNew[i] = array[i+1];
+            }
+        }
+        delete array;
+        return arrayNew;
     }
 }
 

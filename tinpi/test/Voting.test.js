@@ -15,7 +15,7 @@ beforeEach(async () => {
     // Use the first account found for tests
     voting = await new web3.eth.Contract(JSON.parse(interface))
         .deploy({data: bytecode, arguments: []})
-        .send({from: accounts[0], gas: 1000000, gasPrice: '50'});
+        .send({from: accounts[0], gas: 2000000, gasPrice: '5'});
 
     voting.setProvider(provider);
 });
@@ -32,16 +32,20 @@ describe('Voting - calls addTopic', () => {
         assert
             .ok(voting
                 .methods
-                .addTopic(web3.utils.asciiToHex("name"),
+                .addTopic(
+                    web3.utils.asciiToHex("name"),
                     web3.utils.asciiToHex("desc and stuff"))
-                .call({from: web3.eth.accounts[0]})
-                .then(contractInstance => {
-                    console.log(contractInstance.options)
-                    return contractInstance
-                }).catch(e => {
-                    console.error(e);
-                    assert.equal(0, 1);
+                .send({from: accounts[0]})
+                .on('transactionHash', function (hash) {
+                    console.log(hash);
                 })
+                .on('confirmation', function (confirmationNumber, receipt) {
+                    console.log(confirmationNumber, receipt);
+                })
+                .on('receipt', function (receipt) {
+                    console.log(receipt);
+                })
+                .catch(e => console.log(e))
             );
     });
 });

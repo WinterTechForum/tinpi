@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18; //We have to specify what version of compiler this code will use
+pragma solidity ^0.4.18;
 
 contract Voting {
     struct Topic {
@@ -14,7 +14,7 @@ contract Voting {
     function Voting() public {
     }
 
-    function addTopic(bytes32 name, bytes32 description) public returns (uint8) {
+    function addTopic(bytes32 name, bytes32 description) public returns (uint) {
         // ensure topic doesn't exist
         // create topic; add to topics; return id
     }
@@ -38,14 +38,9 @@ contract Voting {
         // return true on success
     }
 
-    function totalVotesForTopic(uint id) view public returns (uint8) {
-        // ensure topic exists
-        // return count of address in the `votes` field
-    }
-
-    function getAllTopicsAndVoteCounts() view public returns (mapping(uint => uint8)) {
+    function getAllTopicsAndVoteCounts() view public returns (Topic[]) {
         // sort topics by length of `votes` field
-        // return mapping of topic `id` to length of `votes` field
+        // return list of topics
     }
 }
 

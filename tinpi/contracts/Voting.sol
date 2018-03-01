@@ -1,4 +1,5 @@
 pragma solidity ^0.4.18;
+
 contract Voting {
     struct Topic {
         uint id;
@@ -8,10 +9,12 @@ contract Voting {
         address[] votes;
     }
 
-    event Stuff(uint _topicId);
+    event TopicIdLog(uint _topicId);
+    event TopicLog (uint _id, string _name, string _desc, address _creator, uint _votes);
 
     uint lastId = 0;
-    mapping (uint => Topic) topics;
+    mapping(uint => Topic) topics;
+
     function addTopic(string name, string description) public returns (uint id) {
         // create topic; add to topics
         address creator = msg.sender;
@@ -27,6 +30,7 @@ contract Voting {
 
         return topicId;
     }
+
     function generateTopicId() private returns (uint newId) {
         newId = lastId + 1;
         lastId = newId;
@@ -34,7 +38,27 @@ contract Voting {
 
 
     function getTopicId(uint idx) public constant returns (uint topid) {
-        Stuff(idx);
+        TopicIdLog(idx);
         return topics[idx].id;
+    }
+
+    function getTopic(uint idx) public constant returns
+    (uint _id, string _name, string _desc, address _creator, uint _votes)
+    {
+
+        TopicLog(
+            topics[idx].id,
+            topics[idx].name,
+            topics[idx].description,
+            topics[idx].creator,
+            topics[idx].votes.length
+        );
+        return (
+        topics[idx].id,
+        topics[idx].name,
+        topics[idx].description,
+        topics[idx].creator,
+        topics[idx].votes.length
+        );
     }
 }

@@ -35,7 +35,30 @@ describe('Voting - calls addTopic', () => {
                 .addTopic(
                     web3.utils.asciiToHex("name"),
                     web3.utils.asciiToHex("desc and stuff"))
-                .send({from: accounts[0]})
+                .send({from: accounts[0], gas: 3000000})
+                .on('transactionHash', function (hash) {
+                    console.log(hash);
+                })
+                .on('confirmation', function (confirmationNumber, receipt) {
+                    console.log(confirmationNumber, receipt);
+                })
+                .on('receipt', function (receipt) {
+                    console.log(receipt);
+                })
+                .catch(e => console.log(e))
+            );
+    });
+});
+
+
+describe('Voting - gets topic by ID', () => {
+    it('works', () => {
+        assert
+            .ok(voting
+                .methods
+                .getTopicId(
+                    0)
+                .send({from: accounts[0], gas: 3000000})
                 .on('transactionHash', function (hash) {
                     console.log(hash);
                 })

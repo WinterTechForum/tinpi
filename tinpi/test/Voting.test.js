@@ -51,7 +51,7 @@ describe('Voting - calls addTopic', () => {
 });
 
 
-describe('Voting - gets topic ID by idx', () => {
+describe('Voting - gets topic ID by ID', () => {
     it('works', () => {
         assert
             .ok(voting
@@ -74,13 +74,35 @@ describe('Voting - gets topic ID by idx', () => {
 });
 
 
-describe('Voting - gets topic by idx', () => {
+describe('Voting - gets topic by id', () => {
     it('works', () => {
         assert
             .ok(voting
                 .methods
                 .getTopic(
                     0)
+                .send({from: accounts[0], gas: 3000000})
+                .on('transactionHash', function (hash) {
+                    console.log(hash);
+                })
+                .on('confirmation', function (confirmationNumber, receipt) {
+                    console.log(confirmationNumber, receipt);
+                })
+                .on('receipt', function (receipt) {
+                    console.log(JSON.stringify(receipt.events));
+                })
+                .catch(e => console.log(e))
+            );
+    });
+});
+
+
+describe('Voting - gets topics count', () => {
+    it('works', () => {
+        assert
+            .ok(voting
+                .methods
+                .getTopicsCount()
                 .send({from: accounts[0], gas: 3000000})
                 .on('transactionHash', function (hash) {
                     console.log(hash);

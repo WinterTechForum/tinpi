@@ -61,4 +61,8 @@ contract Voting {
         topics[idx].votes.length
         );
     }
+
+    function getTopicsCount() public constant returns (uint _count) {
+        return lastId;
+    }
 }

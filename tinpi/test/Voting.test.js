@@ -35,9 +35,31 @@ beforeEach(async () => {
         .send({from: accounts[0], gas: 3000000});
 });
 
-describe('Create topics and participants', () => {
+describe('Create topics and participants and votes', () => {
     it('deploys a contract', () => {
         assert.ok(conference.options.address);
+    });
+    it('votes for topic', () => {
+        assert
+            .ok(conference
+                .methods
+                .voteForTopic(0, 0)
+                .send({from: accounts[0], gas: 3000000})
+                .on('transactionHash', function (hash) {
+                })
+                .on('confirmation', function (confirmationNumber, receipt) {
+                })
+                .on('receipt', function (receipt) {
+                    const retVals = receipt.events.VoteLog.returnValues;
+                    console.log("Vote retvals: ", retVals);
+                    assert.equal(retVals.topicId, 0);
+                    assert.equal(retVals.participantId, 0);
+                    assert.equal(retVals.voteCount, 1);
+                })
+                .catch(e => {
+                    console.log(e);
+                    assert.fail("", e, "Error voting");
+                }))
     });
     it('adds a participant', () => {
         assert
@@ -60,6 +82,27 @@ describe('Create topics and participants', () => {
                     console.log(e);
                     assert.fail("", e, "Error creating participant");
                 }))
+    });
+    it('fetches participant', () => {
+        assert
+            .ok(conference
+                .methods
+                .getParticipant(
+                    0)
+                .send({from: accounts[0], gas: 3000000})
+                .on('transactionHash', function (hash) {
+                    // console.log("Tx Hash:", hash);
+                })
+                .on('confirmation', function (confirmationNumber, receipt) {
+                    // console.log("Confirmation: ", confirmationNumber, receipt);
+                })
+                .on('receipt', function (receipt) {
+                    const retVals = receipt.events.ParticipantFetchLog.returnValues;
+
+                    assert.equal(retVals._name, "First Last", "Created participant name");
+                })
+                .catch(e => console.log(e))
+            );
     });
     it('adds a topic', () => {
         assert

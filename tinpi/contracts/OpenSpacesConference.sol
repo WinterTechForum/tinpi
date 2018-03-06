@@ -26,6 +26,16 @@ contract OpenSpacesConference {
         string _interests
     );
 
+    event ParticipantFetchLog(
+        uint _id,
+        string _name,
+        string _interests,
+        address _voterAddr,
+        uint[] _topicsVoted
+    );
+
+    event VoteLog(uint topicId, uint participantId, uint voteCount);
+
     struct Topic {
         uint id;
         string name;
@@ -39,7 +49,7 @@ contract OpenSpacesConference {
         string name;
         string interests;
         address voterAddr;
-        address[] topicsVoted;
+        uint[] topicsVoted;
     }
 
     uint lastTopicId = 0;
@@ -47,11 +57,30 @@ contract OpenSpacesConference {
     mapping(uint => Topic) topics;
     mapping(uint => Participant) participants;
 
+    function voteForTopic(uint topicId, uint participantId)
+    public returns (uint votesForThatTopic) {
+        address voter = msg.sender;
+        Participant p = participants[topicId];
+        participantId = p.id;
+        if (p.voterAddr == voter) {
+            Topic t = topics[topicId];
+            address[] topicsVotes = t.votes;
+            uint[] votersTopics = p.topicsVoted;
+            topicsVotes.push(voter);
+            votersTopics.push(topicId);
+            Participant memory p2 = Participant(p.id, p.name, p.interests, voter, votersTopics);
+            Topic memory t2 = Topic(t.id, t.name, t.description, t.creator, topicsVotes);
+            participants[participantId] = p2;
+            topics[topicId] = t2;
+            VoteLog(topicId, participantId, topicsVotes.length);
+        }
+    }
+
     function addParticipant(string name, string interests)
     public returns (uint participantId) {
         address creator = msg.sender;
         participantId = lastParticipantId++;
-        participants[participantId] = Participant(participantId, name, interests, creator, new address[](0));
+        participants[participantId] = Participant(participantId, name, interests, creator, new uint[](0));
         ParticipantCreateLog(participantId, name, interests);
     }
 
@@ -94,6 +123,19 @@ contract OpenSpacesConference {
         TopicFetchLog(
             _id, _name, _desc, _creator, _votes
         );
+    }
+
+    function getParticipant(uint idx)
+    public constant
+    returns (uint _id, string _name, string _interests, address _voteAddr, uint[] _topicsVoted)
+    {
+
+        _id = participants[idx].id;
+        _name = participants[idx].name;
+        _interests = participants[idx].interests;
+        _voteAddr = participants[idx].voterAddr;
+        _topicsVoted = participants[idx].topicsVoted;
+        ParticipantFetchLog(_id, _name, _interests, _voteAddr, _topicsVoted);
     }
 
     function getTopicsCount()

@@ -18,6 +18,13 @@ beforeEach(async () => {
         .send({from: accounts[0], gas: 2000000, gasPrice: '5'});
 
     voting.setProvider(provider);
+
+    await voting
+        .methods
+        .addTopic(
+            "Test Topic",
+            "Test Topic Info")
+        .send({from: accounts[0], gas: 3000000});
 });
 
 describe('Create and vote for topics', () => {
@@ -25,24 +32,28 @@ describe('Create and vote for topics', () => {
         assert.ok(voting.options.address);
     });
     it('adds a topic', () => {
-        assert
-            .ok(voting
-                .methods
-                .addTopic(
-                    web3.utils.asciiToHex("name"),
-                    web3.utils.asciiToHex("desc and stuff"))
-                .send({from: accounts[0], gas: 3000000})
-                .on('transactionHash', function (hash) {
-                    console.log(hash);
-                })
-                .on('confirmation', function (confirmationNumber, receipt) {
-                    console.log(confirmationNumber, receipt);
-                })
-                .on('receipt', function (receipt) {
-                    console.log(receipt);
-                })
-                .catch(e => console.log(e))
-            );
+        voting
+            .methods
+            .addTopic(
+                "Test Topic 2",
+                "Topic Descrip 2")
+            .send({from: accounts[0], gas: 3000000})
+            .on('transactionHash', function (hash) {
+            })
+            .on('confirmation', function (confirmationNumber, receipt) {
+            })
+            .on('receipt', function (receipt) {
+                const retVals = receipt.events.TopicCreateLog.returnValues;
+                console.log(
+                    "0Receipt: ",
+                    JSON.stringify(retVals));
+                assert.equal(retVals._name, "Test Topic 2");
+                assert.equal(retVals._desc, "Topic Descrip 2");
+            })
+            .catch(e => {
+                console.log(e);
+                assert.fail("", e, "Error creating topic");
+            })
     });
     it('fetches topic ids', () => {
         assert
@@ -52,13 +63,15 @@ describe('Create and vote for topics', () => {
                     0)
                 .send({from: accounts[0], gas: 3000000})
                 .on('transactionHash', function (hash) {
-                    console.log(hash);
+                    // console.log(hash);
                 })
                 .on('confirmation', function (confirmationNumber, receipt) {
-                    console.log(confirmationNumber, receipt);
+                    // console.log(confirmationNumber, receipt);
                 })
                 .on('receipt', function (receipt) {
-                    console.log(receipt);
+                    console.log(
+                        "1Receipt: ",
+                        JSON.stringify(receipt.events.TopicIdLog.returnValues));
                 })
                 .catch(e => console.log(e))
             );
@@ -71,13 +84,15 @@ describe('Create and vote for topics', () => {
                     0)
                 .send({from: accounts[0], gas: 3000000})
                 .on('transactionHash', function (hash) {
-                    console.log(hash);
+                    console.log("Tx Hash:", hash);
                 })
                 .on('confirmation', function (confirmationNumber, receipt) {
-                    console.log(confirmationNumber, receipt);
+                    console.log("Confirmation: ", confirmationNumber, receipt);
                 })
                 .on('receipt', function (receipt) {
-                    console.log(JSON.stringify(receipt.events));
+                    console.log(
+                        "2Receipt: ",
+                        JSON.stringify(receipt.events.TopicFetchLog.returnValues));
                 })
                 .catch(e => console.log(e))
             );
@@ -89,13 +104,15 @@ describe('Create and vote for topics', () => {
                 .getTopicsCount()
                 .send({from: accounts[0], gas: 3000000})
                 .on('transactionHash', function (hash) {
-                    console.log(hash);
+                    // console.log(hash);
                 })
                 .on('confirmation', function (confirmationNumber, receipt) {
-                    console.log(confirmationNumber, receipt);
+                    // console.log(confirmationNumber, receipt);
                 })
                 .on('receipt', function (receipt) {
-                    console.log(JSON.stringify(receipt.events));
+                    console.log(
+                        // JSON.stringify(receipt.events)
+                    );
                 })
                 .catch(e => console.log(e))
             );

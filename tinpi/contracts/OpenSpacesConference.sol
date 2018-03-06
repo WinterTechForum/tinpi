@@ -19,19 +19,28 @@ contract OpenSpacesConference {
 
 
     event TopicIdLog(uint _topicId);
-    event TopicLog(
+
+    event TopicFetchLog(
         uint _id,
         string _name,
         string _desc,
         address _creator,
         uint _votes);
 
-    uint lastId = 0;
-    mapping(uint => Topic) topics;
+    event TopicCreateLog(
+        uint _id,
+        string _name,
+        string _desc,
+        address _creator,
+        uint _votes);
 
+    uint lastTopicId = 0;
+    uint lastParticipantId = 0;
+    mapping(uint => Topic) topics;
     mapping(uint => Participant) participants;
 
-    function addTopic(string name, string description) public returns (uint id) {
+    function addTopic(string name, string description)
+    public returns (uint id) {
         // create topic; add to topics
         address creator = msg.sender;
 
@@ -44,41 +53,47 @@ contract OpenSpacesConference {
             votes : new address[](0)
             });
 
+
+        TopicCreateLog(topicId, name, description, creator, 0);
+
         return topicId;
     }
 
     function generateTopicId() private returns (uint newId) {
-        newId = lastId + 1;
-        lastId = newId;
+        newId = lastTopicId + 1;
+        lastTopicId = newId;
+    }
+
+    function generateParticipantId() private returns (uint newId) {
+        newId = lastParticipantId + 1;
+        lastParticipantId = newId;
     }
 
 
-    function getTopicId(uint idx) public constant returns (uint topid) {
-        TopicIdLog(idx);
-        return topics[idx].id;
+    function getTopicId(uint idx)
+    public constant returns (uint topid) {
+        topid = topics[idx].id;
+        TopicIdLog(topid);
     }
 
     function getTopic(uint idx) public constant returns
     (uint _id, string _name, string _desc, address _creator, uint _votes)
     {
 
-        TopicLog(
-            topics[idx].id,
-            topics[idx].name,
-            topics[idx].description,
-            topics[idx].creator,
-            topics[idx].votes.length
+        _id = topics[idx].id;
+        _name = topics[idx].name;
+        _desc = topics[idx].description;
+        _creator = topics[idx].creator;
+        _votes = topics[idx].votes.length;
+
+        TopicFetchLog(
+            _id, _name, _desc, _creator, _votes
         );
-        return (
-        topics[idx].id,
-        topics[idx].name,
-        topics[idx].description,
-        topics[idx].creator,
-        topics[idx].votes.length
-        );
+
+
     }
 
     function getTopicsCount() public constant returns (uint _count) {
-        return lastId;
+        _count = lastTopicId;
     }
 }

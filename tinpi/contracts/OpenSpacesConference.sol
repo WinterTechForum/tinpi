@@ -34,41 +34,30 @@ contract OpenSpacesConference {
         address _creator,
         uint _votes);
 
+    event TopicCountLog(uint count);
+
     uint lastTopicId = 0;
     uint lastParticipantId = 0;
     mapping(uint => Topic) topics;
     mapping(uint => Participant) participants;
 
     function addTopic(string name, string description)
-    public returns (uint id) {
+    public returns (uint topicId) {
         // create topic; add to topics
         address creator = msg.sender;
 
-        uint topicId = generateTopicId();
-        topics[topicId] = Topic({
-            id : topicId,
-            name : name,
-            description : description,
-            creator : creator,
-            votes : new address[](0)
-            });
+        topicId = lastTopicId++;
+        topics[topicId] = Topic(
+            topicId,
+            name,
+            description,
+            creator,
+            new address[](0)
+        );
 
 
         TopicCreateLog(topicId, name, description, creator, 0);
-
-        return topicId;
     }
-
-    function generateTopicId() private returns (uint newId) {
-        newId = lastTopicId + 1;
-        lastTopicId = newId;
-    }
-
-    function generateParticipantId() private returns (uint newId) {
-        newId = lastParticipantId + 1;
-        lastParticipantId = newId;
-    }
-
 
     function getTopicId(uint idx)
     public constant returns (uint topid) {
@@ -94,6 +83,7 @@ contract OpenSpacesConference {
     }
 
     function getTopicsCount() public constant returns (uint _count) {
+        TopicCountLog(lastTopicId);
         _count = lastTopicId;
     }
 }

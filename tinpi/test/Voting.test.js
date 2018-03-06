@@ -63,15 +63,15 @@ describe('Create and vote for topics', () => {
                     0)
                 .send({from: accounts[0], gas: 3000000})
                 .on('transactionHash', function (hash) {
-                    // console.log(hash);
                 })
                 .on('confirmation', function (confirmationNumber, receipt) {
-                    // console.log(confirmationNumber, receipt);
                 })
                 .on('receipt', function (receipt) {
+                    const retVals = receipt.events.TopicIdLog.returnValues;
                     console.log(
                         "1Receipt: ",
-                        JSON.stringify(receipt.events.TopicIdLog.returnValues));
+                        JSON.stringify(retVals));
+                    assert.equal(retVals._topicId, 0);
                 })
                 .catch(e => console.log(e))
             );
@@ -84,15 +84,17 @@ describe('Create and vote for topics', () => {
                     0)
                 .send({from: accounts[0], gas: 3000000})
                 .on('transactionHash', function (hash) {
-                    console.log("Tx Hash:", hash);
+                    // console.log("Tx Hash:", hash);
                 })
                 .on('confirmation', function (confirmationNumber, receipt) {
-                    console.log("Confirmation: ", confirmationNumber, receipt);
+                    // console.log("Confirmation: ", confirmationNumber, receipt);
                 })
                 .on('receipt', function (receipt) {
+                    const retVals = receipt.events.TopicFetchLog.returnValues;
                     console.log(
                         "2Receipt: ",
-                        JSON.stringify(receipt.events.TopicFetchLog.returnValues));
+                        JSON.stringify(retVals));
+                    assert.equal(retVals._name, "Test Topic", "Created topic name");
                 })
                 .catch(e => console.log(e))
             );
@@ -104,15 +106,12 @@ describe('Create and vote for topics', () => {
                 .getTopicsCount()
                 .send({from: accounts[0], gas: 3000000})
                 .on('transactionHash', function (hash) {
-                    // console.log(hash);
                 })
                 .on('confirmation', function (confirmationNumber, receipt) {
-                    // console.log(confirmationNumber, receipt);
                 })
                 .on('receipt', function (receipt) {
-                    console.log(
-                        // JSON.stringify(receipt.events)
-                    );
+                    const retVals = receipt.events.TopicCountLog.returnValues;
+                    assert.equal(retVals.count, 1);
                 })
                 .catch(e => console.log(e))
             );

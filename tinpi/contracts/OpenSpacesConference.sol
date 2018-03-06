@@ -2,22 +2,6 @@ pragma solidity ^0.4.18;
 
 contract OpenSpacesConference {
 
-    struct Topic {
-        uint id;
-        string name;
-        string description;
-        address creator;
-        address[] votes;
-    }
-
-    struct Participant {
-        uint id;
-        string name;
-        string interests;
-        address voterAddr;
-    }
-
-
     event TopicIdLog(uint _topicId);
 
     event TopicFetchLog(
@@ -36,14 +20,44 @@ contract OpenSpacesConference {
 
     event TopicCountLog(uint count);
 
+    event ParticipantCreateLog(
+        uint _id,
+        string _name,
+        string _interests
+    );
+
+    struct Topic {
+        uint id;
+        string name;
+        string description;
+        address creator;
+        address[] votes;
+    }
+
+    struct Participant {
+        uint id;
+        string name;
+        string interests;
+        address voterAddr;
+        address[] topicsVoted;
+    }
+
     uint lastTopicId = 0;
     uint lastParticipantId = 0;
     mapping(uint => Topic) topics;
     mapping(uint => Participant) participants;
 
+    function addParticipant(string name, string interests)
+    public returns (uint participantId) {
+        address creator = msg.sender;
+        participantId = lastParticipantId++;
+        participants[participantId] = Participant(participantId, name, interests, creator, new address[](0));
+        ParticipantCreateLog(participantId, name, interests);
+    }
+
     function addTopic(string name, string description)
-    public returns (uint topicId) {
-        // create topic; add to topics
+    public
+    returns (uint topicId) {
         address creator = msg.sender;
 
         topicId = lastTopicId++;
@@ -60,13 +74,15 @@ contract OpenSpacesConference {
     }
 
     function getTopicId(uint idx)
-    public constant returns (uint topid) {
+    public constant
+    returns (uint topid) {
         topid = topics[idx].id;
         TopicIdLog(topid);
     }
 
-    function getTopic(uint idx) public constant returns
-    (uint _id, string _name, string _desc, address _creator, uint _votes)
+    function getTopic(uint idx)
+    public constant
+    returns (uint _id, string _name, string _desc, address _creator, uint _votes)
     {
 
         _id = topics[idx].id;
@@ -78,11 +94,11 @@ contract OpenSpacesConference {
         TopicFetchLog(
             _id, _name, _desc, _creator, _votes
         );
-
-
     }
 
-    function getTopicsCount() public constant returns (uint _count) {
+    function getTopicsCount()
+    public constant
+    returns (uint _count) {
         TopicCountLog(lastTopicId);
         _count = lastTopicId;
     }

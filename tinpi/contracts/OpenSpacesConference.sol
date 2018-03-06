@@ -34,6 +34,18 @@ contract OpenSpacesConference {
         uint[] _topicsVoted
     );
 
+    event CompetitionCreateLog(
+        uint id,
+        string name,
+        string description,
+        uint[] topicIds,
+        uint[] topicVotes,
+        uint minVotes,
+        uint maxVotes,
+        address moderator,
+        bool active
+    );
+
     event VoteLog(uint voteCount);
 
     struct Topic {
@@ -52,13 +64,27 @@ contract OpenSpacesConference {
         uint[] topicsVoted;
     }
 
+    struct Competition {
+        uint id;
+        string name;
+        string description;
+        uint[] topicIds;
+        uint[] topicVotes;
+        uint minVotes;
+        uint maxVotes;
+        address moderator;
+        bool active;
+    }
+
     uint lastTopicId = 0;
     uint lastParticipantId = 0;
+    uint lastCompetitionId = 0;
     mapping(uint => Topic) topics;
     mapping(uint => Participant) participants;
+    mapping(uint => Competition) competitions;
 
     function voteForTopic(uint topicId, uint participantId)
-    public  {
+    public {
         address voter = msg.sender;
         Participant p = participants[participantId];
         participantId = p.id;
@@ -78,6 +104,15 @@ contract OpenSpacesConference {
         }
     }
 
+    function addCompetition(string name, string description, uint[] topicIds, uint minVotes, uint maxVotes)
+    public returns (uint competitionId) {
+        address moderator = msg.sender;
+        competitionId = lastCompetitionId++;
+        competitions[competitionId] = Competition(
+            competitionId, name, description, topicIds, new uint[](topicIds.length), minVotes, maxVotes, moderator, true);
+        CompetitionCreateLog(competitionId, name, description, topicIds, new uint[](topicIds.length), minVotes, maxVotes, moderator, true);
+    }
+
     function addParticipant(string name, string interests)
     public returns (uint participantId) {
         address creator = msg.sender;
@@ -90,7 +125,6 @@ contract OpenSpacesConference {
     public
     returns (uint topicId) {
         address creator = msg.sender;
-
         topicId = lastTopicId++;
         topics[topicId] = Topic(
             topicId,
@@ -99,8 +133,6 @@ contract OpenSpacesConference {
             creator,
             new address[](0)
         );
-
-
         TopicCreateLog(topicId, name, description, creator, 0);
     }
 
@@ -115,7 +147,6 @@ contract OpenSpacesConference {
     public constant
     returns (uint _id, string _name, string _desc, address _creator, uint _votes)
     {
-
         _id = topics[idx].id;
         _name = topics[idx].name;
         _desc = topics[idx].description;
@@ -131,7 +162,6 @@ contract OpenSpacesConference {
     public constant
     returns (uint _id, string _name, string _interests, address _voteAddr, uint[] _topicsVoted)
     {
-
         _id = participants[idx].id;
         _name = participants[idx].name;
         _interests = participants[idx].interests;

@@ -36,8 +36,61 @@ beforeEach(async () => {
 });
 
 describe('Create topics and participants and votes', () => {
+    //TODO a competition test, with competition added to e2e test also
     it('deploys a contract', () => {
         assert.ok(conference.options.address);
+    });
+    it('e2e', async () => {
+
+        const topicReceipt1 = await conference
+            .methods
+            .addTopic(
+                "E2E Topic 1",
+                "E2E Desc 1")
+            .send({from: accounts[0], gas: 3000000});
+
+
+        const topicReceipt2 = await conference
+            .methods
+            .addTopic(
+                "E2E Topic 2",
+                "E2E Desc 2")
+            .send({from: accounts[1], gas: 3000000});
+
+
+        const topicReceipt3 = await conference
+            .methods
+            .addTopic(
+                "E2E Topic 3",
+                "E2E Desc 3")
+            .send({from: accounts[2], gas: 3000000});
+
+
+
+        const voteReceipt1 = await conference
+            .methods
+            .voteForTopic(0, 0)
+            .send({from: accounts[0], gas: 3000000});
+
+
+        const voteReceipt2 = await conference
+            .methods
+            .voteForTopic(1, 0)
+            .send({from: accounts[1], gas: 3000000});
+
+
+        const voteReceipt3 = await conference
+            .methods
+            .voteForTopic(1, 0)
+            .send({from: accounts[2], gas: 3000000});
+
+        const retVals1 = voteReceipt1.events.VoteLog.returnValues;
+        console.log("Vote retvals: ", retVals1);
+        assert.equal(retVals1.voteCount, 1);
+
+
+        //TODO this e2e test
+
     });
     it('votes for topic', () => {
         assert

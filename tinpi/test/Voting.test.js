@@ -20,15 +20,11 @@ beforeEach(async () => {
     voting.setProvider(provider);
 });
 
-describe('Voting - has addr', () => {
+describe('Create and vote for topics', () => {
     it('deploys a contract', () => {
         assert.ok(voting.options.address);
     });
-});
-
-
-describe('Voting - calls addTopic', () => {
-    it('deploys a contract', () => {
+    it('adds a topic', () => {
         assert
             .ok(voting
                 .methods
@@ -48,11 +44,7 @@ describe('Voting - calls addTopic', () => {
                 .catch(e => console.log(e))
             );
     });
-});
-
-
-describe('Voting - gets topic ID by ID', () => {
-    it('works', () => {
+    it('fetches topic ids', () => {
         assert
             .ok(voting
                 .methods
@@ -71,11 +63,7 @@ describe('Voting - gets topic ID by ID', () => {
                 .catch(e => console.log(e))
             );
     });
-});
-
-
-describe('Voting - gets topic by id', () => {
-    it('works', () => {
+    it('fetches topic', () => {
         assert
             .ok(voting
                 .methods
@@ -94,11 +82,7 @@ describe('Voting - gets topic by id', () => {
                 .catch(e => console.log(e))
             );
     });
-});
-
-
-describe('Voting - gets topics count', () => {
-    it('works', () => {
+    it('counts topics', () => {
         assert
             .ok(voting
                 .methods

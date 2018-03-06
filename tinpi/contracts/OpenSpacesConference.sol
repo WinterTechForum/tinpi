@@ -1,6 +1,7 @@
 pragma solidity ^0.4.18;
 
-contract Voting {
+contract OpenSpacesConference {
+
     struct Topic {
         uint id;
         string name;
@@ -9,11 +10,26 @@ contract Voting {
         address[] votes;
     }
 
+    struct Participant {
+        uint id;
+        string name;
+        string interests;
+        address voterAddr;
+    }
+
+
     event TopicIdLog(uint _topicId);
-    event TopicLog (uint _id, string _name, string _desc, address _creator, uint _votes);
+    event TopicLog(
+        uint _id,
+        string _name,
+        string _desc,
+        address _creator,
+        uint _votes);
 
     uint lastId = 0;
     mapping(uint => Topic) topics;
+
+    mapping(uint => Participant) participants;
 
     function addTopic(string name, string description) public returns (uint id) {
         // create topic; add to topics

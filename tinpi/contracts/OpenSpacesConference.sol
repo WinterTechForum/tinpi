@@ -34,7 +34,7 @@ contract OpenSpacesConference {
         uint[] _topicsVoted
     );
 
-    event VoteLog(uint topicId, uint participantId, uint voteCount);
+    event VoteLog(uint voteCount);
 
     struct Topic {
         uint id;
@@ -58,9 +58,9 @@ contract OpenSpacesConference {
     mapping(uint => Participant) participants;
 
     function voteForTopic(uint topicId, uint participantId)
-    public returns (uint votesForThatTopic) {
+    public  {
         address voter = msg.sender;
-        Participant p = participants[topicId];
+        Participant p = participants[participantId];
         participantId = p.id;
         if (p.voterAddr == voter) {
             Topic t = topics[topicId];
@@ -72,7 +72,9 @@ contract OpenSpacesConference {
             Topic memory t2 = Topic(t.id, t.name, t.description, t.creator, topicsVotes);
             participants[participantId] = p2;
             topics[topicId] = t2;
-            VoteLog(topicId, participantId, topicsVotes.length);
+            VoteLog(topicsVotes.length);
+        } else {
+            VoteLog(0);
         }
     }
 

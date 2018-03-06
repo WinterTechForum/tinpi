@@ -52,9 +52,27 @@ describe('Create topics and participants and votes', () => {
                 .on('receipt', function (receipt) {
                     const retVals = receipt.events.VoteLog.returnValues;
                     console.log("Vote retvals: ", retVals);
-                    assert.equal(retVals.topicId, 0);
-                    assert.equal(retVals.participantId, 0);
                     assert.equal(retVals.voteCount, 1);
+                })
+                .catch(e => {
+                    console.log(e);
+                    assert.fail("", e, "Error voting");
+                }))
+    });
+    it('votes for topic are allowed only by address owner', () => {
+        assert
+            .ok(conference
+                .methods
+                .voteForTopic(0, 0)
+                .send({from: accounts[1], gas: 3000000})
+                .on('transactionHash', function (hash) {
+                })
+                .on('confirmation', function (confirmationNumber, receipt) {
+                })
+                .on('receipt', function (receipt) {
+                    const retVals = receipt.events.VoteLog.returnValues;
+                    console.log("Vote retvals for vote not allowed: ", retVals);
+                    assert.equal(retVals.voteCount, 0);
                 })
                 .catch(e => {
                     console.log(e);

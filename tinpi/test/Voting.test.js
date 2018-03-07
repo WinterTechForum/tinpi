@@ -15,7 +15,7 @@ beforeEach(async () => {
     // Use the first account found for tests
     conference = await new web3.eth.Contract(JSON.parse(interface))
         .deploy({data: bytecode, arguments: []})
-        .send({from: accounts[0], gas: 2000000, gasPrice: '5'});
+        .send({from: accounts[0], gas: 3000000, gasPrice: '1'});
 
     conference.setProvider(provider);
 
@@ -39,6 +39,31 @@ describe('Create topics and participants and votes', () => {
     //TODO a competition test, with competition added to e2e test also
     it('deploys a contract', () => {
         assert.ok(conference.options.address);
+
+    });
+
+    it('adds votes in competition', async () => {
+        const voteCompReceipt1 = await conference
+            .methods
+            .voteInCompetition(0, 0, 0)
+            .send({from: accounts[0], gas: 3000000});
+        assert.equal(
+            voteCompReceipt1.events.CompetitionVoteLog.returnValues.count,
+            1);
+    });
+    it('adds competition', async () => {
+        const compReceipt1 = await conference
+            .methods
+            .addCompetition(
+                "Monday Morning Discussion",
+                "Desc Monday Morning",
+                [0, 1],
+                2,
+                10)
+            .send({from: accounts[0], gas: 3000000});
+        assert.equal(
+            compReceipt1.events.CompetitionCreateLog.returnValues.name,
+            "Monday Morning Discussion");
     });
     it('e2e', async () => {
 
@@ -66,22 +91,21 @@ describe('Create topics and participants and votes', () => {
             .send({from: accounts[2], gas: 3000000});
 
 
-
         const voteReceipt1 = await conference
             .methods
-            .voteForTopic(0, 0)
+            .expressInterest(0, 0)
             .send({from: accounts[0], gas: 3000000});
 
 
         const voteReceipt2 = await conference
             .methods
-            .voteForTopic(1, 0)
+            .expressInterest(1, 0)
             .send({from: accounts[1], gas: 3000000});
 
 
         const voteReceipt3 = await conference
             .methods
-            .voteForTopic(1, 0)
+            .expressInterest(1, 0)
             .send({from: accounts[2], gas: 3000000});
 
         const retVals1 = voteReceipt1.events.VoteLog.returnValues;
@@ -96,7 +120,7 @@ describe('Create topics and participants and votes', () => {
         assert
             .ok(conference
                 .methods
-                .voteForTopic(0, 0)
+                .expressInterest(0, 0)
                 .send({from: accounts[0], gas: 3000000})
                 .on('transactionHash', function (hash) {
                 })
@@ -116,7 +140,7 @@ describe('Create topics and participants and votes', () => {
         assert
             .ok(conference
                 .methods
-                .voteForTopic(0, 0)
+                .expressInterest(0, 0)
                 .send({from: accounts[1], gas: 3000000})
                 .on('transactionHash', function (hash) {
                 })

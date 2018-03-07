@@ -39,11 +39,14 @@ contract OpenSpacesConference {
         string name,
         string description,
         uint[] topicIds,
-        uint[] topicVotes,
         uint minVotes,
         uint maxVotes,
         address moderator,
         bool active
+    );
+
+    event CompetitionVoteLog(
+        uint count
     );
 
     event VoteLog(uint voteCount);
@@ -69,11 +72,12 @@ contract OpenSpacesConference {
         string name;
         string description;
         uint[] topicIds;
-        uint[] topicVotes;
+
         uint minVotes;
         uint maxVotes;
         address moderator;
         bool active;
+        mapping(uint => uint) topicVotes;
     }
 
     uint lastTopicId = 0;
@@ -83,7 +87,7 @@ contract OpenSpacesConference {
     mapping(uint => Participant) participants;
     mapping(uint => Competition) competitions;
 
-    function voteForTopic(uint topicId, uint participantId)
+    function expressInterest(uint topicId, uint participantId)
     public {
         address voter = msg.sender;
         Participant p = participants[participantId];
@@ -104,20 +108,38 @@ contract OpenSpacesConference {
         }
     }
 
-    function addCompetition(string name, string description, uint[] topicIds, uint minVotes, uint maxVotes)
+    function voteInCompetition(uint topicId, uint participantId, uint competitionId)
+    public {
+        address voter = msg.sender;
+
+        Participant p = participants[participantId];
+        participantId = p.id;
+        if (p.voterAddr == voter) {
+            Competition c = competitions[competitionId];
+            uint votes = c.topicVotes[topicId];
+            c.topicVotes[topicId] = votes + 1;
+            CompetitionVoteLog(votes + 1);
+        }
+    }
+
+    function addCompetition(
+        string name, string description, uint[] topicIds, uint minVotes, uint maxVotes)
     public returns (uint competitionId) {
         address moderator = msg.sender;
         competitionId = lastCompetitionId++;
-        competitions[competitionId] = Competition(
-            competitionId, name, description, topicIds, new uint[](topicIds.length), minVotes, maxVotes, moderator, true);
-        CompetitionCreateLog(competitionId, name, description, topicIds, new uint[](topicIds.length), minVotes, maxVotes, moderator, true);
+        Competition memory c = Competition(
+            competitionId, name, description, topicIds, minVotes, maxVotes, moderator, true);
+        competitions[competitionId] = c;
+        CompetitionCreateLog(
+            competitionId, name, description, topicIds, minVotes, maxVotes, moderator, true);
     }
 
     function addParticipant(string name, string interests)
     public returns (uint participantId) {
         address creator = msg.sender;
         participantId = lastParticipantId++;
-        participants[participantId] = Participant(participantId, name, interests, creator, new uint[](0));
+        participants[participantId] = Participant(
+            participantId, name, interests, creator, new uint[](0));
         ParticipantCreateLog(participantId, name, interests);
     }
 

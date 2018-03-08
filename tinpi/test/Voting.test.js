@@ -19,37 +19,39 @@ beforeEach(async () => {
 
     conference.setProvider(provider);
 
-    await conference
-        .methods
-        .addTopic(
-            "Test Topic",
-            "Test Topic Info")
-        .send({from: accounts[0], gas: 3000000});
-
-
-    await conference
-        .methods
-        .addParticipant(
-            "First Last",
-            "solc,skiing")
-        .send({from: accounts[0], gas: 3000000});
-
-
-    await conference
-        .methods
-        .addParticipant(
-            "First2 Last2",
-            "clojure,datmic")
-        .send({from: accounts[1], gas: 3000000});
 });
 
 describe('Create topics and participants and votes', () => {
-    //TODO a competition test, with competition added to e2e test also
     it('deploys a contract', () => {
         assert.ok(conference.options.address);
 
     });
     it('fetches competition with votes', async () => {
+
+        await conference
+            .methods
+            .addTopic(
+                "Test Topic",
+                "Test Topic Info")
+            .send({from: accounts[0], gas: 3000000});
+
+
+        await conference
+            .methods
+            .addParticipant(
+                "First Last",
+                "solc,skiing")
+            .send({from: accounts[0], gas: 3000000});
+
+
+        await conference
+            .methods
+            .addParticipant(
+                "First2 Last2",
+                "clojure,datmic")
+            .send({from: accounts[1], gas: 3000000});
+
+
         // Create competition with 2 topics
         const addCompReceipt1 = await conference
             .methods
@@ -111,15 +113,6 @@ describe('Create topics and participants and votes', () => {
             fetchCompReceipt2.events.CompetitionFetchLog.returnValues.topicVotes[0],
             2);
     });
-    it('adds votes in competition', async () => {
-        const voteCompReceipt1 = await conference
-            .methods
-            .voteInCompetition(0, 0, 0)
-            .send({from: accounts[0], gas: 3000000});
-        assert.equal(
-            voteCompReceipt1.events.CompetitionVoteLog.returnValues.count,
-            1);
-    });
     it('adds competition', async () => {
         const compReceipt1 = await conference
             .methods
@@ -135,6 +128,27 @@ describe('Create topics and participants and votes', () => {
             "Monday Morning Discussion");
     });
     it('e2e', async () => {
+        await conference
+            .methods
+            .addParticipant(
+                "First Last",
+                "solc,skiing")
+            .send({from: accounts[0], gas: 3000000});
+
+
+        await conference
+            .methods
+            .addParticipant(
+                "First2 Last2",
+                "clojure,datomic")
+            .send({from: accounts[1], gas: 3000000});
+
+        await conference
+            .methods
+            .addParticipant(
+                "First3 Last3",
+                "kotlin,scala")
+            .send({from: accounts[2], gas: 3000000});
 
         const topicReceipt1 = await conference
             .methods
@@ -168,190 +182,149 @@ describe('Create topics and participants and votes', () => {
 
         const voteReceipt2 = await conference
             .methods
-            .expressInterest(1, 0)
+            .expressInterest(1, 1)
             .send({from: accounts[1], gas: 3000000});
 
 
         const voteReceipt3 = await conference
             .methods
-            .expressInterest(1, 0)
+            .expressInterest(1, 2)
             .send({from: accounts[2], gas: 3000000});
 
         const retVals1 = voteReceipt1.events.VoteLog.returnValues;
+        const retVals2 = voteReceipt2.events.VoteLog.returnValues;
+        const retVals3 = voteReceipt3.events.VoteLog.returnValues;
         console.log("Vote retvals: ", retVals1);
         assert.equal(retVals1.voteCount, 1);
+        assert.equal(retVals2.voteCount, 1);
+        assert.equal(retVals3.voteCount, 2);
 
+    });
+    it('votes for topic', async () => {
+        await conference
+            .methods
+            .addTopic(
+                "Test Topic",
+                "Test Topic Info")
+            .send({from: accounts[0], gas: 3000000});
+        await conference
+            .methods
+            .addParticipant(
+                "First Last",
+                "solc,skiing")
+            .send({from: accounts[0], gas: 3000000});
 
-        //TODO this e2e test
+        const receipt = await conference
+            .methods
+            .expressInterest(0, 0)
+            .send({from: accounts[0], gas: 3000000});
+        const retVals = receipt.events.VoteLog.returnValues;
+        console.log("Express interest retvals: ", retVals);
+        assert.equal(retVals.voteCount, 1);
+    });
+    it('votes for topic are allowed only by address owner', async () => {
+
+        const receipt = await conference
+            .methods
+            .expressInterest(0, 0)
+            .send({from: accounts[1], gas: 3000000});
+        const retVals = receipt.events.VoteLog.returnValues;
+        console.log("Vote retvals for vote not allowed: ", retVals);
+        assert.equal(retVals.voteCount, 0);
+    });
+    it('adds a participant', async () => {
+        const receipt = await conference
+            .methods
+            .addParticipant(
+                "First2 Last2",
+                "clojure,datomic")
+            .send({from: accounts[0], gas: 3000000});
+        const retVals = receipt.events.ParticipantCreateLog.returnValues;
+        assert.equal(retVals._name, "First2 Last2");
+        assert.equal(retVals._interests, "clojure,datomic");
 
     });
-    it('votes for topic', () => {
-        assert
-            .ok(conference
-                .methods
-                .expressInterest(0, 0)
-                .send({from: accounts[0], gas: 3000000})
-                .on('transactionHash', function (hash) {
-                })
-                .on('confirmation', function (confirmationNumber, receipt) {
-                })
-                .on('receipt', function (receipt) {
-                    const retVals = receipt.events.VoteLog.returnValues;
-                    console.log("Vote retvals: ", retVals);
-                    assert.equal(retVals.voteCount, 1);
-                })
-                .catch(e => {
-                    console.log(e);
-                    assert.fail("", e, "Error voting");
-                }))
+    it('fetches participant', async () => {
+        await conference
+            .methods
+            .addParticipant(
+                "First Last",
+                "solc,skiing")
+            .send({from: accounts[0], gas: 3000000});
+        const receipt = await conference
+            .methods
+            .getParticipant(
+                0)
+            .send({from: accounts[0], gas: 3000000});
+        const retVals = receipt.events.ParticipantFetchLog.returnValues;
+        assert.equal(retVals._name, "First Last", "Created participant name");
     });
-    it('votes for topic are allowed only by address owner', () => {
-        assert
-            .ok(conference
-                .methods
-                .expressInterest(0, 0)
-                .send({from: accounts[1], gas: 3000000})
-                .on('transactionHash', function (hash) {
-                })
-                .on('confirmation', function (confirmationNumber, receipt) {
-                })
-                .on('receipt', function (receipt) {
-                    const retVals = receipt.events.VoteLog.returnValues;
-                    console.log("Vote retvals for vote not allowed: ", retVals);
-                    assert.equal(retVals.voteCount, 0);
-                })
-                .catch(e => {
-                    console.log(e);
-                    assert.fail("", e, "Error voting");
-                }))
+    it('adds a topic', async () => {
+        const receipt = await conference
+            .methods
+            .addTopic(
+                "Test Topic 2",
+                "Topic Descrip 2")
+            .send({from: accounts[0], gas: 3000000});
+        const retVals = receipt.events.TopicCreateLog.returnValues;
+        console.log(
+            "0Receipt: ",
+            JSON.stringify(retVals));
+        assert.equal(retVals._name, "Test Topic 2");
+        assert.equal(retVals._desc, "Topic Descrip 2");
     });
-    it('adds a participant', () => {
-        assert
-            .ok(conference
-                .methods
-                .addParticipant(
-                    "First2 Last2",
-                    "clojure,datomic")
-                .send({from: accounts[0], gas: 3000000})
-                .on('transactionHash', function (hash) {
-                })
-                .on('confirmation', function (confirmationNumber, receipt) {
-                })
-                .on('receipt', function (receipt) {
-                    const retVals = receipt.events.ParticipantCreateLog.returnValues;
-                    assert.equal(retVals._name, "First2 Last2");
-                    assert.equal(retVals._interests, "clojure,datomic");
-                })
-                .catch(e => {
-                    console.log(e);
-                    assert.fail("", e, "Error creating participant");
-                }))
-    });
-    it('fetches participant', () => {
-        assert
-            .ok(conference
-                .methods
-                .getParticipant(
-                    0)
-                .send({from: accounts[0], gas: 3000000})
-                .on('transactionHash', function (hash) {
-                    // console.log("Tx Hash:", hash);
-                })
-                .on('confirmation', function (confirmationNumber, receipt) {
-                    // console.log("Confirmation: ", confirmationNumber, receipt);
-                })
-                .on('receipt', function (receipt) {
-                    const retVals = receipt.events.ParticipantFetchLog.returnValues;
+    it('fetches topic ids', async () => {
+        await conference
+            .methods
+            .addTopic(
+                "Test Topic",
+                "Test Topic Info")
+            .send({from: accounts[0], gas: 3000000});
 
-                    assert.equal(retVals._name, "First Last", "Created participant name");
-                })
-                .catch(e => console.log(e))
-            );
+        const receipt = await conference
+            .methods
+            .getTopicId(
+                0)
+            .send({from: accounts[0], gas: 3000000});
+        const retVals = receipt.events.TopicIdLog.returnValues;
+        console.log(
+            "1Receipt: ",
+            JSON.stringify(retVals));
+        assert.equal(retVals._topicId, 0);
     });
-    it('adds a topic', () => {
-        assert
-            .ok(conference
-                .methods
-                .addTopic(
-                    "Test Topic 2",
-                    "Topic Descrip 2")
-                .send({from: accounts[0], gas: 3000000})
-                .on('transactionHash', function (hash) {
-                })
-                .on('confirmation', function (confirmationNumber, receipt) {
-                })
-                .on('receipt', function (receipt) {
-                    const retVals = receipt.events.TopicCreateLog.returnValues;
-                    console.log(
-                        "0Receipt: ",
-                        JSON.stringify(retVals));
-                    assert.equal(retVals._name, "Test Topic 2");
-                    assert.equal(retVals._desc, "Topic Descrip 2");
-                })
-                .catch(e => {
-                    console.log(e);
-                    assert.fail("", e, "Error creating topic");
-                }))
+    it('fetches topic', async () => {
+        await conference
+            .methods
+            .addTopic(
+                "Test Topic",
+                "Test Topic Info")
+            .send({from: accounts[0], gas: 3000000});
+
+        const receipt = await conference
+            .methods
+            .getTopic(
+                0)
+            .send({from: accounts[0], gas: 3000000});
+        const retVals = receipt.events.TopicFetchLog.returnValues;
+        console.log(
+            "2Receipt: ",
+            JSON.stringify(retVals));
+        assert.equal(retVals._name, "Test Topic", "Created topic name");
+
     });
-    it('fetches topic ids', () => {
-        assert
-            .ok(conference
-                .methods
-                .getTopicId(
-                    0)
-                .send({from: accounts[0], gas: 3000000})
-                .on('transactionHash', function (hash) {
-                })
-                .on('confirmation', function (confirmationNumber, receipt) {
-                })
-                .on('receipt', function (receipt) {
-                    const retVals = receipt.events.TopicIdLog.returnValues;
-                    console.log(
-                        "1Receipt: ",
-                        JSON.stringify(retVals));
-                    assert.equal(retVals._topicId, 0);
-                })
-                .catch(e => console.log(e))
-            );
-    });
-    it('fetches topic', () => {
-        assert
-            .ok(conference
-                .methods
-                .getTopic(
-                    0)
-                .send({from: accounts[0], gas: 3000000})
-                .on('transactionHash', function (hash) {
-                    // console.log("Tx Hash:", hash);
-                })
-                .on('confirmation', function (confirmationNumber, receipt) {
-                    // console.log("Confirmation: ", confirmationNumber, receipt);
-                })
-                .on('receipt', function (receipt) {
-                    const retVals = receipt.events.TopicFetchLog.returnValues;
-                    console.log(
-                        "2Receipt: ",
-                        JSON.stringify(retVals));
-                    assert.equal(retVals._name, "Test Topic", "Created topic name");
-                })
-                .catch(e => console.log(e))
-            );
-    });
-    it('counts topics', () => {
-        assert
-            .ok(conference
-                .methods
-                .getTopicsCount()
-                .send({from: accounts[0], gas: 3000000})
-                .on('transactionHash', function (hash) {
-                })
-                .on('confirmation', function (confirmationNumber, receipt) {
-                })
-                .on('receipt', function (receipt) {
-                    const retVals = receipt.events.TopicCountLog.returnValues;
-                    assert.equal(retVals.count, 1);
-                })
-                .catch(e => console.log(e))
-            );
+    it('counts topics', async () => {
+        await conference
+            .methods
+            .addTopic(
+                "Test Topic",
+                "Test Topic Info")
+            .send({from: accounts[0], gas: 3000000});
+
+        const receipt = await conference
+            .methods
+            .getTopicsCount()
+            .send({from: accounts[0], gas: 3000000});
+        const retVals = receipt.events.TopicCountLog.returnValues;
+        assert.equal(retVals.count, 1);
     });
 });

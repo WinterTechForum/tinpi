@@ -34,6 +34,34 @@ contract OpenSpacesConference {
         uint[] _topicsVoted
     );
 
+    event CompetitionCreateLog(
+        uint id,
+        string name,
+        string description,
+        uint[] topicIds,
+        uint minVotes,
+        uint maxVotes,
+        address moderator,
+        bool active
+    );
+
+    event CompetitionVoteLog(
+        uint count,
+        uint totalVotes,
+        bool active
+    );
+
+    event CompetitionFetchLog(
+        uint id,
+        string name,
+        uint[] topicIds,
+        uint minVotes,
+        uint maxVotes,
+        address moderator,
+        bool active,
+        uint[] topicVotes
+    );
+
     event VoteLog(uint voteCount);
 
     struct Topic {
@@ -52,13 +80,27 @@ contract OpenSpacesConference {
         uint[] topicsVoted;
     }
 
+    struct Competition {
+        uint id;
+        string name;
+        string description;
+        uint[] topicIds;
+        uint minVotes;
+        uint maxVotes;
+        address moderator;
+        bool active;
+        mapping(uint => uint) topicVotes;
+    }
+
     uint lastTopicId = 0;
     uint lastParticipantId = 0;
+    uint lastCompetitionId = 0;
     mapping(uint => Topic) topics;
     mapping(uint => Participant) participants;
+    mapping(uint => Competition) competitions;
 
-    function voteForTopic(uint topicId, uint participantId)
-    public  {
+    function expressInterest(uint topicId, uint participantId)
+    public {
         address voter = msg.sender;
         Participant p = participants[participantId];
         participantId = p.id;
@@ -78,11 +120,57 @@ contract OpenSpacesConference {
         }
     }
 
+//    function countTotalVotes(Competition c) returns (uint _count) {
+//        _count = 0;
+//        for (uint j = 0; j < c.topicIds.length; j++) {
+//            _count = _count + c.topicVotes[c.topicIds[j]];
+//        }
+//    }
+
+    function voteInCompetition(uint topicId, uint participantId, uint competitionId)
+    public {
+        address voter = msg.sender;
+
+        Participant p = participants[participantId];
+        participantId = p.id;
+        if (p.voterAddr != voter) {
+            return;
+        }
+        Competition c = competitions[competitionId];
+        uint votes = c.topicVotes[topicId];
+        c.topicVotes[topicId] = votes + 1;
+        uint totalVotes = 0;
+        for (uint j = 0; j < c.topicIds.length; j++) {
+            totalVotes = totalVotes + c.topicVotes[c.topicIds[j]];
+        }
+        bool _active = true;
+        if (totalVotes >= c.maxVotes) {
+            _active = false;
+        }
+        c.active = _active;
+        CompetitionVoteLog(c.topicVotes[topicId], totalVotes, _active);
+
+    }
+
+
+    function addCompetition(
+        string name, string description, uint[] topicIds, uint minVotes, uint maxVotes)
+    public returns (uint competitionId) {
+        address moderator = msg.sender;
+        competitionId = lastCompetitionId++;
+        Competition memory c = Competition(
+            competitionId, name, description, topicIds, minVotes, maxVotes, moderator, true);
+        competitions[competitionId] = c;
+        CompetitionCreateLog(
+            competitionId, name, description, topicIds, minVotes, maxVotes, moderator, true);
+    }
+
     function addParticipant(string name, string interests)
     public returns (uint participantId) {
         address creator = msg.sender;
         participantId = lastParticipantId++;
-        participants[participantId] = Participant(participantId, name, interests, creator, new uint[](0));
+        participants[participantId] = Participant(
+            participantId, name, interests, creator, new uint[](0));
         ParticipantCreateLog(participantId, name, interests);
     }
 
@@ -90,7 +178,6 @@ contract OpenSpacesConference {
     public
     returns (uint topicId) {
         address creator = msg.sender;
-
         topicId = lastTopicId++;
         topics[topicId] = Topic(
             topicId,
@@ -99,8 +186,6 @@ contract OpenSpacesConference {
             creator,
             new address[](0)
         );
-
-
         TopicCreateLog(topicId, name, description, creator, 0);
     }
 
@@ -115,7 +200,6 @@ contract OpenSpacesConference {
     public constant
     returns (uint _id, string _name, string _desc, address _creator, uint _votes)
     {
-
         _id = topics[idx].id;
         _name = topics[idx].name;
         _desc = topics[idx].description;
@@ -131,7 +215,6 @@ contract OpenSpacesConference {
     public constant
     returns (uint _id, string _name, string _interests, address _voteAddr, uint[] _topicsVoted)
     {
-
         _id = participants[idx].id;
         _name = participants[idx].name;
         _interests = participants[idx].interests;
@@ -140,10 +223,52 @@ contract OpenSpacesConference {
         ParticipantFetchLog(_id, _name, _interests, _voteAddr, _topicsVoted);
     }
 
+
+    function getCompetition(uint idx)
+    public constant
+    returns (
+        uint _id, string _name, uint[] _topicIds,
+        uint _minVotes, uint _maxVotes, address _moderator, bool _active,
+        uint[] _topicVotes)
+    {
+        Competition c = competitions[idx];
+        _id = c.id;
+        _name = c.name;
+        _topicIds = c.topicIds;
+        _minVotes = c.minVotes;
+        _maxVotes = c.maxVotes;
+        _moderator = c.moderator;
+        _active = c.active;
+
+        uint[] tvs;
+        tvs.length = 0;
+        for (uint i = 0; i < _topicIds.length; i++) {
+            tvs.length += 1;
+            tvs[i] = (c.topicVotes[_topicIds[i]]);
+        }
+        _topicVotes = tvs;
+        CompetitionFetchLog(_id, _name, _topicIds, _minVotes, _maxVotes, _moderator, _active, _topicVotes);
+
+    }
+
     function getTopicsCount()
     public constant
     returns (uint _count) {
         TopicCountLog(lastTopicId);
         _count = lastTopicId;
+    }
+
+
+    function getParticipantsCount()
+    public constant
+    returns (uint _count) {
+        _count = lastParticipantId;
+    }
+
+
+    function getCompetitionsCount()
+    public constant
+    returns (uint _count) {
+        _count = lastCompetitionId;
     }
 }

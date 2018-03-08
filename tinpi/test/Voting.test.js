@@ -33,6 +33,14 @@ beforeEach(async () => {
             "First Last",
             "solc,skiing")
         .send({from: accounts[0], gas: 3000000});
+
+
+    await conference
+        .methods
+        .addParticipant(
+            "First2 Last2",
+            "clojure,datmic")
+        .send({from: accounts[1], gas: 3000000});
 });
 
 describe('Create topics and participants and votes', () => {
@@ -41,7 +49,68 @@ describe('Create topics and participants and votes', () => {
         assert.ok(conference.options.address);
 
     });
+    it('fetches competition with votes', async () => {
+        // Create competition with 2 topics
+        const addCompReceipt1 = await conference
+            .methods
+            .addCompetition(
+                "Monday Morning Discussion",
+                "Desc Monday Morning",
+                [0, 1],
+                2,
+                10)
+            .send({from: accounts[0], gas: 3000000});
 
+        // Person 1 Votes for Topic 1
+        const voteCompReceipt1 = await conference
+            .methods
+            .voteInCompetition(0, 0, 0)
+            .send({from: accounts[0], gas: 3000000});
+
+        // Fetch competition
+        const fetchCompReceipt1 = await conference
+            .methods
+            .getCompetition(0)
+            .send({from: accounts[0], gas: 3000000});
+
+
+        // console.log("Fetched comp first: ", fetchCompReceipt1.events.CompetitionFetchLog.returnValues);
+        assert.equal(
+            fetchCompReceipt1.events.CompetitionFetchLog.returnValues.id,
+            0);
+        // Assert 1 vote for Topic 1
+        assert.equal(
+            fetchCompReceipt1.events.CompetitionFetchLog.returnValues.topicVotes[0],
+            1);
+
+
+        // Person 2 votes for Topic 1
+        const voteCompReceipt2 = await conference
+            .methods
+            .voteInCompetition(0, 1, 0)
+            .send({from: accounts[1], gas: 3000000});
+
+        console.log("Vote receipt second: ", voteCompReceipt2.events.CompetitionVoteLog.returnValues);
+        //CompetitionVoteLog(votes + 1, totalVotes, c.active);
+        assert.equal(
+            voteCompReceipt2.events.CompetitionVoteLog.returnValues.count,
+            2);
+
+
+        const fetchCompReceipt2 = await conference
+            .methods
+            .getCompetition(0)
+            .send({from: accounts[0], gas: 3000000});
+        // console.log("Fetched comp second: ", fetchCompReceipt2.events.CompetitionFetchLog.returnValues);
+
+        assert.equal(
+            fetchCompReceipt2.events.CompetitionFetchLog.returnValues.id,
+            0);
+        // Now Topic 2 has 2 votes
+        assert.equal(
+            fetchCompReceipt2.events.CompetitionFetchLog.returnValues.topicVotes[0],
+            2);
+    });
     it('adds votes in competition', async () => {
         const voteCompReceipt1 = await conference
             .methods

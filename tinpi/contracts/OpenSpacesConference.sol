@@ -120,6 +120,12 @@ contract OpenSpacesConference {
         }
     }
 
+//    function countTotalVotes(Competition c) returns (uint _count) {
+//        _count = 0;
+//        for (uint j = 0; j < c.topicIds.length; j++) {
+//            _count = _count + c.topicVotes[c.topicIds[j]];
+//        }
+//    }
 
     function voteInCompetition(uint topicId, uint participantId, uint competitionId)
     public {
@@ -127,20 +133,25 @@ contract OpenSpacesConference {
 
         Participant p = participants[participantId];
         participantId = p.id;
-        if (p.voterAddr == voter) {
-            Competition c = competitions[competitionId];
-            uint votes = c.topicVotes[topicId];
-            c.topicVotes[topicId] = votes + 1;
-            uint totalVotes = 0;
-            for (uint j = 0; j < c.topicIds.length; j++) {
-                totalVotes = totalVotes + c.topicVotes[c.topicIds[j]];
-            }
-            if (totalVotes >= c.maxVotes) {
-                c.active = false;
-            }
-            CompetitionVoteLog(votes + 1, totalVotes, c.active);
+        if (p.voterAddr != voter) {
+            return;
         }
+        Competition c = competitions[competitionId];
+        uint votes = c.topicVotes[topicId];
+        c.topicVotes[topicId] = votes + 1;
+        uint totalVotes = 0;
+        for (uint j = 0; j < c.topicIds.length; j++) {
+            totalVotes = totalVotes + c.topicVotes[c.topicIds[j]];
+        }
+        bool _active = true;
+        if (totalVotes >= c.maxVotes) {
+            _active = false;
+        }
+        c.active = _active;
+        CompetitionVoteLog(c.topicVotes[topicId], totalVotes, _active);
+
     }
+
 
     function addCompetition(
         string name, string description, uint[] topicIds, uint minVotes, uint maxVotes)

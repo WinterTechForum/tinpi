@@ -48,8 +48,14 @@ describe('Create topics and participants and votes', () => {
             .methods
             .addParticipant(
                 "First2 Last2",
-                "clojure,datmic")
+                "clojure,datomic")
             .send({from: accounts[1], gas: 3000000});
+        await conference
+            .methods
+            .addParticipant(
+                "First3 Last3",
+                "scala,kotlin")
+            .send({from: accounts[2], gas: 3000000});
 
 
         // Create competition with 2 topics
@@ -60,7 +66,7 @@ describe('Create topics and participants and votes', () => {
                 "Desc Monday Morning",
                 [0, 1],
                 2,
-                10)
+                3)
             .send({from: accounts[0], gas: 3000000});
 
         // Person 1 Votes for Topic 1
@@ -112,6 +118,32 @@ describe('Create topics and participants and votes', () => {
         assert.equal(
             fetchCompReceipt2.events.CompetitionFetchLog.returnValues.topicVotes[0],
             2);
+
+        // Person 3 votes for Topic 1
+        const voteCompReceipt3 = await conference
+            .methods
+            .voteInCompetition(0, 2, 0)
+            .send({from: accounts[2], gas: 3000000});
+        console.log("vote3: ", voteCompReceipt3.events.CompetitionVoteLog.returnValues);
+
+        const fetchCompReceipt3 = await conference
+            .methods
+            .getCompetition(0)
+            .send({from: accounts[0], gas: 3000000});
+        console.log("Fetched comp third: ", fetchCompReceipt2.events.CompetitionFetchLog.returnValues);
+        assert.equal(
+            fetchCompReceipt3.events.CompetitionFetchLog.returnValues.topicVotes[0],
+            3);
+        assert.equal(
+            fetchCompReceipt1.events.CompetitionFetchLog.returnValues.active,
+            true);
+        assert.equal(
+            fetchCompReceipt2.events.CompetitionFetchLog.returnValues.active,
+            true);
+        assert.equal(
+            fetchCompReceipt3.events.CompetitionFetchLog.returnValues.active,
+            false);
+
     });
     it('adds competition', async () => {
         const compReceipt1 = await conference
